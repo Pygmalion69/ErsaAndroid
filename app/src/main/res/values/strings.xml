@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">Ersa Dashboard</string>
+    <string name="qtyTemperature">T</string>
+    <string name="qtyRelativeHumidity">RH</string>
+    <string name="qtyDewpoint">Tdp</string>
+    <string name="degC">&#x2103;</string>
+    <string name="percent">%</string>
+</resources>
+
+

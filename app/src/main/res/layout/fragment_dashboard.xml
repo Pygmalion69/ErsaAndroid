@@ -1,0 +1,111 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:gauge="http://schemas.android.com/apk/res-auto"
+    xmlns:gravity="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <ScrollView
+
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            tools:context="eu.sergehelfrich.ersaandroid.DashboardFragment">
+
+            <TextView
+                android:id="@+id/tvOrigin"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="8dp"
+                android:gravity="center"
+                android:textStyle="bold"
+                tools:text="111" />
+
+            <TextView
+                android:id="@+id/tvDateTime"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="8dp"
+                android:gravity="center"
+                tools:text="2018-01-01 00:00:00" />
+
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="8dp"
+                android:gravity="center"
+                android:orientation="horizontal"
+                android:weightSum="2">
+
+                <de.nitri.gauge.Gauge
+                    android:id="@+id/gaugeTemperature"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_marginTop="10dp"
+                    android:layout_weight="1"
+                    android:minHeight="180dp"
+                    gauge:needleColor="@color/colorTemperature"
+                    gauge:upperText="@string/qtyTemperature"
+                    gauge:lowerText="@string/degC"
+                    gauge:initialValue="0"
+                    gauge:maxValue="60"
+                    gauge:minValue="-20"
+                    gauge:totalNicks="100"
+                    gauge:valuePerNick="1" />
+
+                <de.nitri.gauge.Gauge
+                    android:id="@+id/gaugeHumidity"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_marginTop="10dp"
+                    android:minHeight="180dp"
+                    android:layout_weight="1"
+                    gauge:initialValue="0"
+                    gauge:upperText="@string/qtyRelativeHumidity"
+                    gauge:lowerText="@string/percent"
+                    gauge:needleColor="@color/colorHumidity"
+                    gauge:maxValue="100"
+                    gauge:minValue="0"
+                    gauge:totalNicks="120"
+                    gauge:valuePerNick="1" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:layout_marginLeft="8dp"
+                android:layout_marginRight="8dp"
+                android:gravity="center"
+                android:orientation="horizontal"
+                android:weightSum="2">
+
+                <de.nitri.gauge.Gauge
+                    android:id="@+id/gaugeDewPoint"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:minHeight="180dp"
+                    gauge:upperText="@string/qtyDewpoint"
+                    gauge:lowerText="@string/degC"
+                    gauge:needleColor="@color/colorDewPoint"
+                    gauge:initialValue="0"
+                    gauge:maxValue="60"
+                    gauge:minValue="-20"
+                    gauge:totalNicks="100"
+                    gauge:valuePerNick="1" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>
