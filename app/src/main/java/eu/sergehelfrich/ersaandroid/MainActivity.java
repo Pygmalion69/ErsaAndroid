@@ -45,7 +45,6 @@ public class MainActivity extends AppCompatActivity {
         ViewPager pager = findViewById(R.id.pager);
         pager.setAdapter(mAdapter);
 
-
         mViewModel = ViewModelProviders.of(this).get(DashboardViewModel.class);
 
         final Observer<Integer> originObserver = numberOfOrigins -> {
@@ -76,24 +75,26 @@ public class MainActivity extends AppCompatActivity {
         Runnable fetchRunnable = new Runnable() {
             @Override
             public void run() {
-                Call<List<Reading>> call = apiService.getLatestReadings();
-                call.enqueue(new Callback<List<Reading>>() {
-                    @Override
-                    public void onResponse(@NonNull Call<List<Reading>> call, @NonNull Response<List<Reading>> response) {
-                        Log.d(TAG, response.toString());
-                        if (response.body() != null && mViewModel != null) {
-                            mViewModel.getReadings().postValue(response.body());
-                            mViewModel.getNumberOfOrigins().postValue(response.body().size());
+                if (apiService != null) {
+                    Call<List<Reading>> call = apiService.getLatestReadings();
+                    call.enqueue(new Callback<List<Reading>>() {
+                        @Override
+                        public void onResponse(@NonNull Call<List<Reading>> call, @NonNull Response<List<Reading>> response) {
+                            Log.d(TAG, response.toString());
+                            if (response.body() != null && mViewModel != null) {
+                                mViewModel.getReadings().postValue(response.body());
+                                mViewModel.getNumberOfOrigins().postValue(response.body().size());
+                            }
                         }
-                    }
 
-                    @Override
-                    public void onFailure(@NonNull Call<List<Reading>> call, @NonNull Throwable t) {
-                        t.printStackTrace();
+                        @Override
+                        public void onFailure(@NonNull Call<List<Reading>> call, @NonNull Throwable t) {
+                            t.printStackTrace();
+                        }
+                    });
+                    if (mHandler != null) {
+                        mHandler.postDelayed(this, 30000);
                     }
-                });
-                if (mHandler != null) {
-                    mHandler.postDelayed(this, 30000);
                 }
             }
         };
@@ -126,10 +127,6 @@ public class MainActivity extends AppCompatActivity {
             return origins.size();
         }
 
-        @Override
-        public int getItemPosition(Object object) {
-            return POSITION_NONE;
-        }
 
         @Override
         public Fragment getFragmentItem(int position) {
