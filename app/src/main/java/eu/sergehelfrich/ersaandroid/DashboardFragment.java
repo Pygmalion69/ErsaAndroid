@@ -2,7 +2,6 @@ package eu.sergehelfrich.ersaandroid;
 
 import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProviders;
-import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -40,7 +39,6 @@ public class DashboardFragment extends Fragment implements Updatable {
 
     private Dew mDew;
     private Temperature mTemperature;
-    private double mRelativeHumidity;
     private Temperature mDewPoint;
     private boolean mViewCreated;
     private Reading mReading;
@@ -74,18 +72,15 @@ public class DashboardFragment extends Fragment implements Updatable {
 
         mViewModel = ViewModelProviders.of(getActivity()).get(DashboardViewModel.class);
 
-        final Observer<List<Reading>> readingsObserver = new Observer<List<Reading>>() {
-            @Override
-            public void onChanged(@Nullable final List<Reading> readings) {
-                if (readings != null) {
-                    for (Reading reading : readings) {
-                        if (mOrigin.equals(reading.getOrigin())) {
-                            mReading = reading;
-                            break;
-                        }
+        final Observer<List<Reading>> readingsObserver = readings -> {
+            if (readings != null) {
+                for (Reading reading : readings) {
+                    if (mOrigin.equals(reading.getOrigin())) {
+                        mReading = reading;
+                        break;
                     }
-                    update();
                 }
+                update();
             }
         };
 
@@ -124,10 +119,10 @@ public class DashboardFragment extends Fragment implements Updatable {
 
         if (mViewCreated) {
             mTemperature.setTemperature(mReading.getTemperature());
-            mRelativeHumidity = mReading.getHumidity();
+            double relativeHumidity = mReading.getHumidity();
             double kelvin = mTemperature.getKelvin();
             try {
-                mDewPoint.setKelvin(mDew.dewPoint(mRelativeHumidity, kelvin));
+                mDewPoint.setKelvin(mDew.dewPoint(relativeHumidity, kelvin));
             } catch (SolverException e) {
                 e.printStackTrace();
             }

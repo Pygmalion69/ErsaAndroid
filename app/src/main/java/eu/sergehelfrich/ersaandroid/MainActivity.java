@@ -5,15 +5,11 @@ import android.arch.lifecycle.ViewModelProviders;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
-
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,11 +29,8 @@ public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = MainActivity.class.getSimpleName();
 
-    private Gson gson;
-    private Retrofit retrofit;
     private DashboardViewModel mViewModel;
     private DashboardAdapter mAdapter;
-    private ViewPager mPager;
 
     private static List<String> origins = new ArrayList<>();
     private Handler mHandler;
@@ -49,35 +42,30 @@ public class MainActivity extends AppCompatActivity {
 
         mAdapter = new DashboardAdapter(getSupportFragmentManager());
 
-        mPager = findViewById(R.id.pager);
-        mPager.setAdapter(mAdapter);
+        ViewPager pager = findViewById(R.id.pager);
+        pager.setAdapter(mAdapter);
 
 
         mViewModel = ViewModelProviders.of(this).get(DashboardViewModel.class);
 
-        final Observer<Integer> originObserver = new Observer<Integer>() {
-            @Override
-            public void onChanged(@Nullable final Integer numberOfOrigins) {
-                if (mViewModel.getReadings() != null && mViewModel.getReadings().getValue() != null) {
-                    origins.clear();
-                    for (Reading reading : mViewModel.getReadings().getValue()) {
-                        origins.add(reading.getOrigin());
-                    }
-                    mAdapter.notifyDataSetChanged();
+        final Observer<Integer> originObserver = numberOfOrigins -> {
+            if (mViewModel.getReadings() != null && mViewModel.getReadings().getValue() != null) {
+                origins.clear();
+                for (Reading reading : mViewModel.getReadings().getValue()) {
+                    origins.add(reading.getOrigin());
                 }
+                mAdapter.notifyDataSetChanged();
             }
         };
 
         mViewModel.getNumberOfOrigins().observe(this, originObserver);
 
-        gson = new GsonBuilder().create();
-
         //TODO:
         String url = "http://services.nitri.de:8080/ersa/";
 
-        retrofit = new Retrofit.Builder()
+        Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(url)
-                .addConverterFactory(GsonConverterFactory.create(gson))
+                .addConverterFactory(GsonConverterFactory.create())
                 .build();
 
         final ApiEndpointInterface apiService =
@@ -105,7 +93,6 @@ public class MainActivity extends AppCompatActivity {
                     }
                 });
                 if (mHandler != null) {
-                    //mHandler.postDelayed(this, 5000);
                     mHandler.postDelayed(this, 30000);
                 }
             }
