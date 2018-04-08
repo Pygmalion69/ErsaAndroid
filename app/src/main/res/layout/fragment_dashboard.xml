@@ -2,11 +2,19 @@
     xmlns:gauge="http://schemas.android.com/apk/res-auto"
     xmlns:gravity="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/fragment_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <ScrollView
+    <ProgressBar
+        android:id="@+id/progress"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"/>
 
+    <ScrollView
+        android:id="@+id/dashboard_scroll_view"
+        android:visibility="gone"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:fillViewport="true">
@@ -51,13 +59,13 @@
                     android:layout_marginTop="10dp"
                     android:layout_weight="1"
                     android:minHeight="180dp"
-                    gauge:needleColor="@color/colorTemperature"
-                    gauge:upperText="@string/qtyTemperature"
-                    gauge:lowerText="@string/degC"
                     gauge:initialValue="0"
+                    gauge:lowerText="@string/degC"
                     gauge:maxValue="60"
                     gauge:minValue="-20"
+                    gauge:needleColor="@color/colorTemperature"
                     gauge:totalNicks="100"
+                    gauge:upperText="@string/qtyTemperature"
                     gauge:valuePerNick="1" />
 
                 <de.nitri.gauge.Gauge
@@ -66,15 +74,15 @@
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
                     android:layout_marginTop="10dp"
-                    android:minHeight="180dp"
                     android:layout_weight="1"
+                    android:minHeight="180dp"
                     gauge:initialValue="0"
-                    gauge:upperText="@string/qtyRelativeHumidity"
                     gauge:lowerText="@string/percent"
-                    gauge:needleColor="@color/colorHumidity"
                     gauge:maxValue="100"
                     gauge:minValue="0"
+                    gauge:needleColor="@color/colorHumidity"
                     gauge:totalNicks="120"
+                    gauge:upperText="@string/qtyRelativeHumidity"
                     gauge:valuePerNick="1" />
 
             </LinearLayout>
@@ -95,13 +103,13 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:minHeight="180dp"
-                    gauge:upperText="@string/qtyDewpoint"
-                    gauge:lowerText="@string/degC"
-                    gauge:needleColor="@color/colorDewPoint"
                     gauge:initialValue="0"
+                    gauge:lowerText="@string/degC"
                     gauge:maxValue="60"
                     gauge:minValue="-20"
+                    gauge:needleColor="@color/colorDewPoint"
                     gauge:totalNicks="100"
+                    gauge:upperText="@string/qtyDewpoint"
                     gauge:valuePerNick="1" />
 
             </LinearLayout>

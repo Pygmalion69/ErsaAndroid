@@ -24,66 +24,78 @@ import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 import retrofit2.http.GET;
+import retrofit2.http.Query;
 
 public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = MainActivity.class.getSimpleName();
 
-    private DashboardViewModel mViewModel;
+    private static final String KEY_CURRENT_ITEM = "current_item";
+
+    private DashboardViewModel mDashboardViewModel;
     private DashboardAdapter mAdapter;
 
     private static List<String> origins = new ArrayList<>();
     private Handler mHandler;
+    private ViewPager mPager;
+    private static int mCurrentItem;
+    private Retrofit mRetrofit;
+    private ApiEndpointInterface mApiService;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        if (savedInstanceState != null) {
+            mCurrentItem = savedInstanceState.getInt(KEY_CURRENT_ITEM);
+        }
+
         mAdapter = new DashboardAdapter(getSupportFragmentManager());
 
-        ViewPager pager = findViewById(R.id.pager);
-        pager.setAdapter(mAdapter);
+        mPager = findViewById(R.id.pager);
+        mPager.setAdapter(mAdapter);
 
-        mViewModel = ViewModelProviders.of(this).get(DashboardViewModel.class);
+
+        mDashboardViewModel = ViewModelProviders.of(this).get(DashboardViewModel.class);
 
         final Observer<Integer> originObserver = numberOfOrigins -> {
-            if (mViewModel.getReadings() != null && mViewModel.getReadings().getValue() != null) {
+            if (mDashboardViewModel.getReadings() != null && mDashboardViewModel.getReadings().getValue() != null) {
                 origins.clear();
-                for (Reading reading : mViewModel.getReadings().getValue()) {
+                for (Reading reading : mDashboardViewModel.getReadings().getValue()) {
                     origins.add(reading.getOrigin());
                 }
                 mAdapter.notifyDataSetChanged();
             }
         };
 
-        mViewModel.getNumberOfOrigins().observe(this, originObserver);
+        mDashboardViewModel.getNumberOfOrigins().observe(this, originObserver);
 
         //TODO:
         String url = "http://services.nitri.de:8080/ersa/";
 
-        Retrofit retrofit = new Retrofit.Builder()
+        mRetrofit = new Retrofit.Builder()
                 .baseUrl(url)
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
 
-        final ApiEndpointInterface apiService =
-                retrofit.create(ApiEndpointInterface.class);
+        mApiService =
+                mRetrofit.create(ApiEndpointInterface.class);
 
         mHandler = new Handler();
 
         Runnable fetchRunnable = new Runnable() {
             @Override
             public void run() {
-                if (apiService != null) {
-                    Call<List<Reading>> call = apiService.getLatestReadings();
+                if (mApiService != null) {
+                    Call<List<Reading>> call = mApiService.getLatestReadings();
                     call.enqueue(new Callback<List<Reading>>() {
                         @Override
                         public void onResponse(@NonNull Call<List<Reading>> call, @NonNull Response<List<Reading>> response) {
                             Log.d(TAG, response.toString());
-                            if (response.body() != null && mViewModel != null) {
-                                mViewModel.getReadings().postValue(response.body());
-                                mViewModel.getNumberOfOrigins().postValue(response.body().size());
+                            if (response.body() != null && mDashboardViewModel != null) {
+                                mDashboardViewModel.getReadings().postValue(response.body());
+                                mDashboardViewModel.getNumberOfOrigins().postValue(response.body().size());
                             }
                         }
 
@@ -104,11 +116,24 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
+    protected void onResume() {
+        super.onResume();
+        new Handler().post(() -> mPager.setCurrentItem(mCurrentItem));
+    }
+
+    @Override
     protected void onPause() {
         if (isFinishing()) {
             mHandler.removeCallbacksAndMessages(null);
         }
         super.onPause();
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        mCurrentItem = mPager.getCurrentItem();
+        outState.putInt(KEY_CURRENT_ITEM, mCurrentItem);
+        super.onSaveInstanceState(outState);
     }
 
     @Override
@@ -146,6 +171,7 @@ public class MainActivity extends AppCompatActivity {
 
         @GET("latest")
         Call<List<Reading>> getLatestReadings();
+
     }
 
 
