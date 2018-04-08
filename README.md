@@ -12,3 +12,4 @@ Uses:
 - Retrofit
 - [Ersa](https://github.com/Pygmalion69/Ersa)
 - [Gauge View](https://github.com/Pygmalion69/Gauge);
+- [MPAndroidChart](https://github.com/PhilJay/MPAndroidChart)
