@@ -5,6 +5,7 @@
     <string name="qtyDewpoint">Tdp</string>
     <string name="degC">&#x2103;</string>
     <string name="percent">%</string>
+    <string name="action_chart">Chart</string>
 </resources>
 
 

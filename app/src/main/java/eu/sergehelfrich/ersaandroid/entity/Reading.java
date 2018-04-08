@@ -55,4 +55,5 @@ public class Reading {
     public void setHumidity(Double humidity) {
         this.humidity = humidity;
     }
+
 }

@@ -20,6 +20,8 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity android:name=".ChartActivity"
+            android:parentActivityName="eu.sergehelfrich.ersaandroid.MainActivity" />
     </application>
 
 </manifest>
