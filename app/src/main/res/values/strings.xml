@@ -6,6 +6,7 @@
     <string name="degC">&#x2103;</string>
     <string name="percent">%</string>
     <string name="action_chart">Chart</string>
+    <string name="chart_activity_title">Ersa Chart</string>
 </resources>
 
 
