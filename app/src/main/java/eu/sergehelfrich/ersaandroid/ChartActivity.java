@@ -101,6 +101,7 @@ public class ChartActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chart);
+        setTitle(R.string.chart_activity_title);
 
         mProgress = findViewById(R.id.progressBar);
         mTvStatus = findViewById(R.id.textViewStatus);

@@ -12,6 +12,7 @@
     <string name="begin_time">Begin time</string>
     <string name="end_date">End date</string>
     <string name="end_time">End time</string>
+    <string name="chart_activity_title">Ersa Chart</string>
 </resources>
 
 
