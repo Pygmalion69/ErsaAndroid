@@ -1,21 +1,30 @@
 package eu.sergehelfrich.ersaandroid;
 
 import android.annotation.SuppressLint;
+import android.app.DatePickerDialog;
+import android.app.TimePickerDialog;
 import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProviders;
+import android.content.Context;
+import android.content.pm.ActivityInfo;
 import android.graphics.Color;
 import android.graphics.Typeface;
-import android.os.Handler;
+import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.content.res.ResourcesCompat;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
+import android.util.TypedValue;
+import android.view.Gravity;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.Surface;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
-import com.github.mikephil.charting.charts.Chart;
 import com.github.mikephil.charting.charts.LineChart;
 import com.github.mikephil.charting.components.AxisBase;
 import com.github.mikephil.charting.components.Legend;
@@ -29,9 +38,9 @@ import com.github.mikephil.charting.utils.ColorTemplate;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 import eu.sergehelfrich.ersa.Dew;
 import eu.sergehelfrich.ersa.Scale;
@@ -70,17 +79,23 @@ public class ChartActivity extends AppCompatActivity {
     private static final int UI_STATE_CHART = 2;
     private static final int UI_STATE_STATUS = 3;
 
+    private static final int DATE_TIME_BEGIN = 1;
+    private static final int DATE_TIME_END = 2;
+
     protected Typeface mTfRegular;
     protected Typeface mTfLight;
     private Long mBaseTimeStamp;
 
-    int mColorTemperature ;
+    int mColorTemperature;
     int mColorHumidity;
     int mColorDewPoint;
     private TextView mTvDegC;
     private TextView mTvPercent;
     private YAxis leftAxis;
 
+    private Calendar mDateTimeSelected;
+    private long mBeginEpoch;
+    private long mEndEpoch;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -180,11 +195,7 @@ public class ChartActivity extends AppCompatActivity {
         rightAxis.setYOffset(-9f);
         rightAxis.setTextColor(ResourcesCompat.getColor(getResources(), R.color.colorPrimary, null));
 
-        Date nowDate = new Date();
-        long now = nowDate.getTime() / 1000;
-        long start = now - (3600 * 24);
-
-        fetchRange(start, now);
+        showLast24h();
 
     }
 
@@ -208,14 +219,14 @@ public class ChartActivity extends AppCompatActivity {
         ArrayList<Entry> humidityValues = new ArrayList<>();
         ArrayList<Entry> dewPointValues = new ArrayList<>();
         List<Reading> readings = mChartViewModel.getReadings().getValue();
-        if (readings != null  && readings.size() > 0) {
+        if (readings != null && readings.size() > 0) {
 
             mBaseTimeStamp = readings.get(0).getTimestamp();
 
             float maxTemperature = readings.get(0).getTemperature().floatValue();
             float minTemperature = maxTemperature;
 
-            for (Reading reading :readings) {
+            for (Reading reading : readings) {
                 mTemperature.setTemperature(reading.getTemperature().floatValue());
                 float deltaTime = reading.getTimestamp() - mBaseTimeStamp;
                 float temperature = (float) mTemperature.getTemperature();
@@ -268,6 +279,18 @@ public class ChartActivity extends AppCompatActivity {
         }
     }
 
+    private void showLast24h() {
+        Date nowDate = new Date();
+        long now = nowDate.getTime() / 1000;
+        long start = now - (3600 * 24);
+        setUiState(UI_STATE_LOADING);
+        fetchRange(start, now);
+    }
+
+    private void showRange() {
+        showDateTimeRangePicker(DATE_TIME_BEGIN);
+    }
+
     private void setUiState(int uiState) {
         switch (uiState) {
             case UI_STATE_LOADING:
@@ -295,6 +318,123 @@ public class ChartActivity extends AppCompatActivity {
         }
     }
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_chart, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.action_range:
+                showRange();
+                break;
+            case R.id.action_today:
+                showLast24h();
+                break;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    public void showDateTimeRangePicker(int dateTimeType) {
+        final Calendar currentDateTime = Calendar.getInstance();
+        mDateTimeSelected = Calendar.getInstance();
+        DatePickerDialog datePickerDialog = new DatePickerDialog(this, (dateView, year, monthOfYear, dayOfMonth) -> {
+            mDateTimeSelected.set(year, monthOfYear, dayOfMonth);
+
+            TimePickerDialog timePickerDialog = new TimePickerDialog(ChartActivity.this, (timeView, hourOfDay, minute) -> {
+                mDateTimeSelected.set(Calendar.HOUR_OF_DAY, hourOfDay);
+                mDateTimeSelected.set(Calendar.MINUTE, minute);
+                switch (dateTimeType) {
+
+                    case DATE_TIME_BEGIN:
+                        mBeginEpoch = mDateTimeSelected.getTimeInMillis() / 1000L;
+                        showDateTimeRangePicker(DATE_TIME_END);
+                        break;
+                    case DATE_TIME_END:
+                        mEndEpoch = mDateTimeSelected.getTimeInMillis() / 1000L;
+                        setUiState(UI_STATE_LOADING);
+                        fetchRange(mBeginEpoch, mEndEpoch);
+                        unlockOrientation();
+                        break;
+                }
+            }, currentDateTime.get(Calendar.HOUR_OF_DAY), currentDateTime.get(Calendar.MINUTE), false);
+
+            if (isPortrait()) { // https://issuetracker.google.com/issues/37083460
+                timePickerDialog.setCustomTitle(getDialogCustomTitleView(dateTimeType == DATE_TIME_BEGIN ? R.string.begin_time : R.string.end_time));
+            }
+
+            timePickerDialog.setOnDismissListener(dialog -> unlockOrientation());
+            lockOrientation();
+            timePickerDialog.show();
+        }, currentDateTime.get(Calendar.YEAR), currentDateTime.get(Calendar.MONTH), currentDateTime.get(Calendar.DATE));
+
+        datePickerDialog.setCustomTitle(getDialogCustomTitleView(dateTimeType == DATE_TIME_BEGIN ? R.string.begin_date : R.string.end_date));
+        datePickerDialog.setOnCancelListener(dialog -> unlockOrientation());
+        if (dateTimeType == DATE_TIME_END) {
+            datePickerDialog.getDatePicker().setMinDate(mBeginEpoch * 1000);
+            long currentEpoch = currentDateTime.getTimeInMillis() / 1000L;
+            long maxEpoch = currentEpoch;
+            long weekEpoch = mBeginEpoch + 7 * 24 * 3600;
+            if (weekEpoch < currentEpoch) {
+                maxEpoch = weekEpoch;
+            }
+            datePickerDialog.getDatePicker().setMaxDate(maxEpoch * 1000);
+        }
+        lockOrientation();
+        datePickerDialog.show();
+    }
+
+    private TextView getDialogCustomTitleView(int res) {
+        TextView tvTitle = new TextView(this);
+        tvTitle.setBackgroundColor(ContextCompat.getColor(this, R.color.colorAccentDark));
+        tvTitle.setTextColor(ContextCompat.getColor(this, android.R.color.white));
+        int padding = dp2px(8);
+        tvTitle.setPadding(padding, padding, padding, padding);
+        tvTitle.setGravity(Gravity.CENTER);
+        tvTitle.setTypeface(tvTitle.getTypeface(), Typeface.BOLD);
+        tvTitle.setText(res);
+        return tvTitle;
+    }
+
+    private int dp2px(int dp) {
+        return (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp, getResources().getDisplayMetrics());
+    }
+
+    private void lockOrientation() {
+        int orientation;
+        int rotation = ((WindowManager) getSystemService(
+                Context.WINDOW_SERVICE)).getDefaultDisplay().getRotation();
+        switch (rotation) {
+            case Surface.ROTATION_0:
+                orientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT;
+                break;
+            case Surface.ROTATION_90:
+                orientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE;
+                break;
+            case Surface.ROTATION_180:
+                orientation = ActivityInfo.SCREEN_ORIENTATION_REVERSE_PORTRAIT;
+                break;
+            default:
+                orientation = ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE;
+                break;
+        }
+
+        setRequestedOrientation(orientation);
+    }
+
+    private void unlockOrientation() {
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);
+    }
+
+    private boolean isPortrait() {
+        int rotation = ((WindowManager) getSystemService(
+                Context.WINDOW_SERVICE)).getDefaultDisplay().getRotation();
+        return (rotation == Surface.ROTATION_0 || rotation == Surface.ROTATION_180);
+    }
 
     public interface ApiEndpointInterface {
 

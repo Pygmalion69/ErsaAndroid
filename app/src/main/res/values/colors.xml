@@ -4,7 +4,9 @@
     <color name="colorPrimaryDark">#303F9F</color>
     <color name="colorAccent">#FF4081</color>
 
-    <color name="colorTemperature">#FF0000</color>
-    <color name="colorHumidity">#0000FF</color>
-    <color name="colorDewPoint">#3F51B5</color>
+    <color name="colorAccentDark">#C2185B</color>
+
+    <color name="colorTemperature">#F44336</color>
+    <color name="colorHumidity">#2196F3</color>
+    <color name="colorDewPoint">#673AB7</color>
 </resources>
