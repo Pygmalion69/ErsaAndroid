@@ -7,6 +7,7 @@ import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.Context;
 import android.content.pm.ActivityInfo;
+import android.content.res.Configuration;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.os.Bundle;
@@ -405,26 +406,55 @@ public class ChartActivity extends AppCompatActivity {
         return (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp, getResources().getDisplayMetrics());
     }
 
+    /**
+     * Lock the screen to the current orientation on Android
+     * https://stackoverflow.com/questions/4553650/how-to-check-device-natural-default-orientation-on-android-i-e-get-landscape
+     * https://stackoverflow.com/a/14150037/959505
+     *
+     */
     private void lockOrientation() {
-        int orientation;
-        int rotation = ((WindowManager) getSystemService(
-                Context.WINDOW_SERVICE)).getDefaultDisplay().getRotation();
-        switch (rotation) {
-            case Surface.ROTATION_0:
-                orientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT;
-                break;
-            case Surface.ROTATION_90:
-                orientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE;
-                break;
-            case Surface.ROTATION_180:
-                orientation = ActivityInfo.SCREEN_ORIENTATION_REVERSE_PORTRAIT;
-                break;
-            default:
-                orientation = ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE;
-                break;
-        }
+        int orientation = 0;
+        WindowManager windowService = (WindowManager) getSystemService(Context.WINDOW_SERVICE);
+        if (windowService != null) {
 
-        setRequestedOrientation(orientation);
+            // Assume phone
+            int defaultOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT;
+            int defaultReverseOrientation = ActivityInfo.SCREEN_ORIENTATION_REVERSE_PORTRAIT;
+            int otherOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE;
+            int otherReverseOrientation = ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE;
+
+            Configuration config = getResources().getConfiguration();
+
+            int rotation = windowService.getDefaultDisplay().getRotation();
+
+            if (((rotation == Surface.ROTATION_0 || rotation == Surface.ROTATION_180) &&
+                    config.orientation == Configuration.ORIENTATION_LANDSCAPE)
+                    || ((rotation == Surface.ROTATION_90 || rotation == Surface.ROTATION_270) &&
+                    config.orientation == Configuration.ORIENTATION_PORTRAIT)) {
+
+                // We have a landscape device (tablet, TomTom)
+                defaultOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE;
+                defaultReverseOrientation = ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE;
+                otherOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT;
+                otherReverseOrientation = ActivityInfo.SCREEN_ORIENTATION_REVERSE_PORTRAIT;
+            }
+
+            switch (rotation) {
+                case Surface.ROTATION_0:
+                    orientation = defaultOrientation;
+                    break;
+                case Surface.ROTATION_90:
+                    orientation = otherOrientation;
+                    break;
+                case Surface.ROTATION_180:
+                    orientation = defaultReverseOrientation;
+                    break;
+                case Surface.ROTATION_270:
+                    orientation = otherReverseOrientation;
+                    break;
+            }
+            setRequestedOrientation(orientation);
+        }
     }
 
     private void unlockOrientation() {
