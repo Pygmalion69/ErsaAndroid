@@ -6,6 +6,12 @@
     <string name="degC">&#x2103;</string>
     <string name="percent">%</string>
     <string name="action_chart">Chart</string>
+    <string name="action_time_range">Range</string>
+    <string name="action_today">24h</string>
+    <string name="begin_date">Begin date</string>
+    <string name="begin_time">Begin time</string>
+    <string name="end_date">End date</string>
+    <string name="end_time">End time</string>
     <string name="chart_activity_title">Ersa Chart</string>
 </resources>
 
