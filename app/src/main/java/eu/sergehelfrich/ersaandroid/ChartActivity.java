@@ -11,7 +11,6 @@ import android.content.res.Configuration;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.res.ResourcesCompat;
@@ -48,12 +47,12 @@ import eu.sergehelfrich.ersa.Scale;
 import eu.sergehelfrich.ersa.Temperature;
 import eu.sergehelfrich.ersa.solver.SolverException;
 import eu.sergehelfrich.ersaandroid.api.ErsaApi;
+import eu.sergehelfrich.ersaandroid.api.ReadingDatabase;
+import eu.sergehelfrich.ersaandroid.da.ReadingDao;
 import eu.sergehelfrich.ersaandroid.entity.Reading;
+import eu.sergehelfrich.ersaandroid.repo.ReadingRepository;
 import eu.sergehelfrich.ersaandroid.view.ChartValueMarkerView;
 import eu.sergehelfrich.ersaandroid.viewmodel.ChartViewModel;
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
@@ -123,11 +122,12 @@ public class ChartActivity extends AppCompatActivity {
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
 
-        mApiService =
-                mRetrofit.create(ErsaApi.class);
+        ErsaApi api = mRetrofit.create(ErsaApi.class);
+        ReadingDao dao = ReadingDatabase.getDatabase(this).readingDao();
+        ReadingRepository readingRepository = new ReadingRepository(dao, api);
 
         mChartViewModel = ViewModelProviders.of(this).get(ChartViewModel.class);
-
+        mChartViewModel.setRepository(readingRepository);
         mChartReadingsObserver = new Observer<List<Reading>>() {
 
             @Override
@@ -135,8 +135,6 @@ public class ChartActivity extends AppCompatActivity {
                 setData();
             }
         };
-
-        mChartViewModel.getReadings().observe(this, mChartReadingsObserver);
 
         mTfRegular = Typeface.createFromAsset(getAssets(), "OpenSans-Regular.ttf");
         mTfLight = Typeface.createFromAsset(getAssets(), "OpenSans-Light.ttf");
@@ -198,21 +196,6 @@ public class ChartActivity extends AppCompatActivity {
 
         showLast24h();
 
-    }
-
-    public void fetchRange(long min, long max) {
-        Call<List<Reading>> call = mApiService.getRange(mOrigin, min, max);
-        call.enqueue(new Callback<List<Reading>>() {
-            @Override
-            public void onResponse(@NonNull Call<List<Reading>> call, @NonNull Response<List<Reading>> response) {
-                mChartViewModel.getReadings().postValue(response.body());
-            }
-
-            @Override
-            public void onFailure(@NonNull Call<List<Reading>> call, @NonNull Throwable t) {
-                t.printStackTrace();
-            }
-        });
     }
 
     private void setData() {
@@ -285,7 +268,7 @@ public class ChartActivity extends AppCompatActivity {
         long now = nowDate.getTime() / 1000;
         long start = now - (3600 * 24);
         setUiState(UI_STATE_LOADING);
-        fetchRange(start, now);
+        mChartViewModel.getReadings(mOrigin, start, now).observe(this, mChartReadingsObserver);
     }
 
     private void showRange() {
@@ -358,7 +341,7 @@ public class ChartActivity extends AppCompatActivity {
                     case DATE_TIME_END:
                         mEndEpoch = mDateTimeSelected.getTimeInMillis() / 1000L;
                         setUiState(UI_STATE_LOADING);
-                        fetchRange(mBeginEpoch, mEndEpoch);
+                        mChartViewModel.getReadings(mOrigin, mBeginEpoch, mEndEpoch).observe(this, mChartReadingsObserver);
                         unlockOrientation();
                         break;
                 }
