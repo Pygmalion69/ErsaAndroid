@@ -47,6 +47,7 @@ import eu.sergehelfrich.ersa.Dew;
 import eu.sergehelfrich.ersa.Scale;
 import eu.sergehelfrich.ersa.Temperature;
 import eu.sergehelfrich.ersa.solver.SolverException;
+import eu.sergehelfrich.ersaandroid.api.ErsaApi;
 import eu.sergehelfrich.ersaandroid.entity.Reading;
 import eu.sergehelfrich.ersaandroid.view.ChartValueMarkerView;
 import eu.sergehelfrich.ersaandroid.viewmodel.ChartViewModel;
@@ -55,13 +56,11 @@ import retrofit2.Callback;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
-import retrofit2.http.GET;
-import retrofit2.http.Query;
 
 public class ChartActivity extends AppCompatActivity {
 
     private Retrofit mRetrofit;
-    private ApiEndpointInterface mApiService;
+    private ErsaApi mApiService;
     private String mOrigin;
     private ChartViewModel mChartViewModel;
     private Observer<List<Reading>> mChartReadingsObserver;
@@ -125,7 +124,7 @@ public class ChartActivity extends AppCompatActivity {
                 .build();
 
         mApiService =
-                mRetrofit.create(ApiEndpointInterface.class);
+                mRetrofit.create(ErsaApi.class);
 
         mChartViewModel = ViewModelProviders.of(this).get(ChartViewModel.class);
 
@@ -467,9 +466,4 @@ public class ChartActivity extends AppCompatActivity {
         return (rotation == Surface.ROTATION_0 || rotation == Surface.ROTATION_180);
     }
 
-    public interface ApiEndpointInterface {
-
-        @GET("range")
-        Call<List<Reading>> getRange(@Query("origin") String origin, @Query("minTime") long min, @Query("maxTime") long max);
-    }
 }

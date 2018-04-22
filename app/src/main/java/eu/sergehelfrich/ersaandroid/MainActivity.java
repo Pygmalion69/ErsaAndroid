@@ -16,6 +16,7 @@ import java.util.List;
 
 import eu.sergehelfrich.ersaandroid.adapter.Updatable;
 import eu.sergehelfrich.ersaandroid.adapter.UpdatableFragmentStatePagerAdapter;
+import eu.sergehelfrich.ersaandroid.api.ErsaApi;
 import eu.sergehelfrich.ersaandroid.entity.Reading;
 import eu.sergehelfrich.ersaandroid.viewmodel.DashboardViewModel;
 import retrofit2.Call;
@@ -23,8 +24,6 @@ import retrofit2.Callback;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
-import retrofit2.http.GET;
-import retrofit2.http.Query;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -40,7 +39,7 @@ public class MainActivity extends AppCompatActivity {
     private ViewPager mPager;
     private static int mCurrentItem;
     private Retrofit mRetrofit;
-    private ApiEndpointInterface mApiService;
+    private ErsaApi mApiService;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -80,7 +79,7 @@ public class MainActivity extends AppCompatActivity {
                 .build();
 
         mApiService =
-                mRetrofit.create(ApiEndpointInterface.class);
+                mRetrofit.create(ErsaApi.class);
 
         mHandler = new Handler();
 
@@ -166,13 +165,5 @@ public class MainActivity extends AppCompatActivity {
             }
         }
     }
-
-    public interface ApiEndpointInterface {
-
-        @GET("latest")
-        Call<List<Reading>> getLatestReadings();
-
-    }
-
 
 }
