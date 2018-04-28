@@ -5,7 +5,7 @@ Ersa Android Client
 - Calculates and displays the dew point.
 - Predicts environmental hazards (e.g. mold, corrosion) and material preservation.
 
-![Ersa Dashboard](dashboard.png "dashboard") ![Ersa Chart](chart.png "chart") ![Ersa Chart Zoom](chart_zoom.png "chart")
+![Ersa Dashboard](dashboard.png "dashboard") ![Ersa Chart](chart1.png "chart") ![Ersa Chart Zoom](chart_zoom.png "chart")
 
 Uses:
 - Android Architecture Components: ViewModel, LiveData

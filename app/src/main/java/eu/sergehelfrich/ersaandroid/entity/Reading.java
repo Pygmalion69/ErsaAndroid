@@ -1,16 +1,20 @@
 package eu.sergehelfrich.ersaandroid.entity;
 
+import android.arch.persistence.room.Entity;
+import android.support.annotation.NonNull;
+
 /**
  * Created by helfrich on 25/02/2018.
  */
 
+@Entity(primaryKeys = {"id", "origin", "timestamp"})
 public class Reading {
 
-    private Long id;
+    private @NonNull Long id;
 
-    private String origin;
+    private @NonNull String origin;
 
-    private Long timestamp;
+    private @NonNull Long timestamp;
 
     private Double temperature;
 
