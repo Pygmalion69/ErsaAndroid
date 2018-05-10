@@ -13,43 +13,32 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class ReadingRepository {
+public class ChartReadingRepository extends BaseRepository {
 
-    private final ReadingDao dao;
-    private final ErsaApi api;
+    private final String TAG = ChartReadingRepository.class.getSimpleName();
 
-    public ReadingRepository(ReadingDao dao, ErsaApi api) {
-        this.dao = dao;
-        this.api = api;
+    private final ErsaApi mApi;
+
+    public ChartReadingRepository(ReadingDao dao, ErsaApi api) {
+        mDao = dao;
+        mApi = api;
     }
 
     public LiveData<List<Reading>> loadReadings(String origin, long min, long max) {
 
         refresh(origin, min, max);
-        LiveData<List<Reading>> readings = dao.loadRange(origin, min, max);
-        return readings;
+        return mDao.loadRange(origin, min, max);
     }
 
     @WorkerThread
     private void refresh(String origin, long min, long max) {
 
-        if (api != null) {
-            Call<List<Reading>> call = api.getRange(origin, min, max);
+        if (mApi != null) {
+            Call<List<Reading>> call = mApi.getRange(origin, min, max);
             call.enqueue(new Callback<List<Reading>>() {
                 @Override
                 public void onResponse(@NonNull Call<List<Reading>> call, @NonNull Response<List<Reading>> response) {
-                    List<Reading> body = response.body();
-                    if (body != null) {
-                        Reading[] array = new Reading[body.size()];
-                        if (dao != null)
-                            new Thread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    dao.insertReadings(body.toArray(array));
-                                }
-                            }).start();
-                    }
-
+                    insertReadings(response.body());
                 }
 
                 @Override
@@ -58,6 +47,13 @@ public class ReadingRepository {
                 }
             });
         }
+    }
 
+    private void insertReadings(List<Reading> readings) {
+        if (readings != null) {
+            Reading[] array = new Reading[readings.size()];
+            if (mDao != null)
+                new Thread(() -> mDao.insertReadings(readings.toArray(array))).start();
+        }
     }
 }

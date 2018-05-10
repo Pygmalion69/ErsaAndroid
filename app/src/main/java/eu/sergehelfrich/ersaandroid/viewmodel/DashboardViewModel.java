@@ -1,11 +1,12 @@
 package eu.sergehelfrich.ersaandroid.viewmodel;
 
-import android.arch.lifecycle.MutableLiveData;
+import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.ViewModel;
 
 import java.util.List;
 
-import eu.sergehelfrich.ersaandroid.entity.Reading;
+import eu.sergehelfrich.ersaandroid.entity.LatestReadingResult;
+import eu.sergehelfrich.ersaandroid.repo.DashboardReadingRepository;
 
 /**
  * Created by helfrich on 25/02/2018.
@@ -13,21 +14,17 @@ import eu.sergehelfrich.ersaandroid.entity.Reading;
 
 public class DashboardViewModel extends ViewModel {
 
-    private MutableLiveData<List<Reading>> mReadings;
-    private MutableLiveData<Integer> mNumberOfOrigins;
+    private DashboardReadingRepository mRepository;
 
-    public MutableLiveData<List<Reading>> getReadings() {
-        if (mReadings == null) {
-            mReadings = new MutableLiveData<>();
-        }
-        return mReadings;
+    private LiveData<List<LatestReadingResult>> mReadings;
+
+    public void setRepository(DashboardReadingRepository repository) {
+        mRepository = repository;
     }
 
-    public MutableLiveData<Integer> getNumberOfOrigins() {
-        if (mNumberOfOrigins == null) {
-            mNumberOfOrigins = new MutableLiveData<>();
-        }
-        return mNumberOfOrigins;
+    public LiveData<List<LatestReadingResult>> getReadings() {
+        mReadings = mRepository.loadLatestReadings();
+        return mReadings;
     }
 
 }

@@ -11,7 +11,6 @@ import android.content.res.Configuration;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.os.Bundle;
-import android.support.annotation.Nullable;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.res.ResourcesCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -50,7 +49,7 @@ import eu.sergehelfrich.ersaandroid.api.ErsaApi;
 import eu.sergehelfrich.ersaandroid.api.ReadingDatabase;
 import eu.sergehelfrich.ersaandroid.da.ReadingDao;
 import eu.sergehelfrich.ersaandroid.entity.Reading;
-import eu.sergehelfrich.ersaandroid.repo.ReadingRepository;
+import eu.sergehelfrich.ersaandroid.repo.ChartReadingRepository;
 import eu.sergehelfrich.ersaandroid.view.ChartValueMarkerView;
 import eu.sergehelfrich.ersaandroid.viewmodel.ChartViewModel;
 import retrofit2.Retrofit;
@@ -58,8 +57,6 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 public class ChartActivity extends AppCompatActivity {
 
-    private Retrofit mRetrofit;
-    private ErsaApi mApiService;
     private String mOrigin;
     private ChartViewModel mChartViewModel;
     private Observer<List<Reading>> mChartReadingsObserver;
@@ -95,6 +92,7 @@ public class ChartActivity extends AppCompatActivity {
     private Calendar mDateTimeSelected;
     private long mBeginEpoch;
     private long mEndEpoch;
+    private ChartReadingRepository mReadingRepository;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -117,24 +115,18 @@ public class ChartActivity extends AppCompatActivity {
         //TODO:
         String url = "http://services.nitri.de:8080/ersa/";
 
-        mRetrofit = new Retrofit.Builder()
+        Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(url)
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
 
-        ErsaApi api = mRetrofit.create(ErsaApi.class);
+        ErsaApi api = retrofit.create(ErsaApi.class);
         ReadingDao dao = ReadingDatabase.getDatabase(this).readingDao();
-        ReadingRepository readingRepository = new ReadingRepository(dao, api);
+        mReadingRepository = new ChartReadingRepository(dao, api);
 
         mChartViewModel = ViewModelProviders.of(this).get(ChartViewModel.class);
-        mChartViewModel.setRepository(readingRepository);
-        mChartReadingsObserver = new Observer<List<Reading>>() {
-
-            @Override
-            public void onChanged(@Nullable List<Reading> readings) {
-                setData();
-            }
-        };
+        mChartViewModel.setRepository(mReadingRepository);
+        mChartReadingsObserver = readings -> setData();
 
         mTfRegular = Typeface.createFromAsset(getAssets(), "OpenSans-Regular.ttf");
         mTfLight = Typeface.createFromAsset(getAssets(), "OpenSans-Light.ttf");
@@ -195,7 +187,6 @@ public class ChartActivity extends AppCompatActivity {
         rightAxis.setTextColor(ResourcesCompat.getColor(getResources(), R.color.colorPrimary, null));
 
         showLast24h();
-
     }
 
     private void setData() {
@@ -303,6 +294,14 @@ public class ChartActivity extends AppCompatActivity {
     }
 
     @Override
+    protected void onPause() {
+        if (isFinishing()) {
+            mReadingRepository.truncateDb();
+        }
+        super.onPause();
+    }
+
+    @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_chart, menu);
         return true;
@@ -392,7 +391,6 @@ public class ChartActivity extends AppCompatActivity {
      * Lock the screen to the current orientation on Android
      * https://stackoverflow.com/questions/4553650/how-to-check-device-natural-default-orientation-on-android-i-e-get-landscape
      * https://stackoverflow.com/a/14150037/959505
-     *
      */
     private void lockOrientation() {
         int orientation = 0;
@@ -414,7 +412,7 @@ public class ChartActivity extends AppCompatActivity {
                     || ((rotation == Surface.ROTATION_90 || rotation == Surface.ROTATION_270) &&
                     config.orientation == Configuration.ORIENTATION_PORTRAIT)) {
 
-                // We have a landscape device (tablet, TomTom)
+                // We have a landscape device (tablet)
                 defaultOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE;
                 defaultReverseOrientation = ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE;
                 otherOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT;

@@ -1,13 +1,12 @@
 package eu.sergehelfrich.ersaandroid.viewmodel;
 
 import android.arch.lifecycle.LiveData;
-import android.arch.lifecycle.MutableLiveData;
 import android.arch.lifecycle.ViewModel;
 
 import java.util.List;
 
 import eu.sergehelfrich.ersaandroid.entity.Reading;
-import eu.sergehelfrich.ersaandroid.repo.ReadingRepository;
+import eu.sergehelfrich.ersaandroid.repo.ChartReadingRepository;
 
 /**
  * Created by helfrich on 25/02/2018.
@@ -15,10 +14,10 @@ import eu.sergehelfrich.ersaandroid.repo.ReadingRepository;
 
 public class ChartViewModel extends ViewModel {
 
-    private ReadingRepository mRepository;
+    private ChartReadingRepository mRepository;
     private LiveData<List<Reading>> mReadings;
 
-    public void setRepository(ReadingRepository repository) {
+    public void setRepository(ChartReadingRepository repository) {
         mRepository = repository;
     }
 

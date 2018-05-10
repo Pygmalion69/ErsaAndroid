@@ -15,10 +15,10 @@ public abstract class ReadingDatabase extends RoomDatabase {
 
     public abstract ReadingDao readingDao();
 
-    public static ReadingDatabase getDatabase(Context context) {
+    public static synchronized ReadingDatabase getDatabase(Context context) {
         if (instance == null) {
             instance =
-                    Room.databaseBuilder(context.getApplicationContext(), ReadingDatabase.class, "country-database")
+                    Room.databaseBuilder(context.getApplicationContext(), ReadingDatabase.class, "reading-database")
                             .build();
         }
         return instance;

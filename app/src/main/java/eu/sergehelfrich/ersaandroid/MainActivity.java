@@ -4,7 +4,6 @@ import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProviders;
 import android.os.Bundle;
 import android.os.Handler;
-import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.view.ViewPager;
@@ -17,11 +16,12 @@ import java.util.List;
 import eu.sergehelfrich.ersaandroid.adapter.Updatable;
 import eu.sergehelfrich.ersaandroid.adapter.UpdatableFragmentStatePagerAdapter;
 import eu.sergehelfrich.ersaandroid.api.ErsaApi;
+import eu.sergehelfrich.ersaandroid.api.ReadingDatabase;
+import eu.sergehelfrich.ersaandroid.da.ReadingDao;
+import eu.sergehelfrich.ersaandroid.entity.LatestReadingResult;
 import eu.sergehelfrich.ersaandroid.entity.Reading;
+import eu.sergehelfrich.ersaandroid.repo.DashboardReadingRepository;
 import eu.sergehelfrich.ersaandroid.viewmodel.DashboardViewModel;
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
@@ -31,15 +31,13 @@ public class MainActivity extends AppCompatActivity {
 
     private static final String KEY_CURRENT_ITEM = "current_item";
 
-    private DashboardViewModel mDashboardViewModel;
     private DashboardAdapter mAdapter;
 
     private static List<String> origins = new ArrayList<>();
     private Handler mHandler;
     private ViewPager mPager;
     private static int mCurrentItem;
-    private Retrofit mRetrofit;
-    private ErsaApi mApiService;
+    private DashboardReadingRepository mReadingRepository;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,69 +53,35 @@ public class MainActivity extends AppCompatActivity {
         mPager = findViewById(R.id.pager);
         mPager.setAdapter(mAdapter);
 
-
-        mDashboardViewModel = ViewModelProviders.of(this).get(DashboardViewModel.class);
-
-        final Observer<Integer> originObserver = numberOfOrigins -> {
-            if (mDashboardViewModel.getReadings() != null && mDashboardViewModel.getReadings().getValue() != null) {
-                origins.clear();
-                for (Reading reading : mDashboardViewModel.getReadings().getValue()) {
-                    origins.add(reading.getOrigin());
-                }
-                mAdapter.notifyDataSetChanged();
-            }
-        };
-
-        mDashboardViewModel.getNumberOfOrigins().observe(this, originObserver);
+        DashboardViewModel dashboardViewModel = ViewModelProviders.of(this).get(DashboardViewModel.class);
 
         //TODO:
         String url = "http://services.nitri.de:8080/ersa/";
 
-        mRetrofit = new Retrofit.Builder()
+        Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(url)
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
 
-        mApiService =
-                mRetrofit.create(ErsaApi.class);
+        ErsaApi api = retrofit.create(ErsaApi.class);
+        ReadingDao dao = ReadingDatabase.getDatabase(this).readingDao();
+        mReadingRepository = new DashboardReadingRepository(dao, api);
 
-        mHandler = new Handler();
+        dashboardViewModel.setRepository(mReadingRepository);
 
-        Runnable fetchRunnable = new Runnable() {
-            @Override
-            public void run() {
-                if (mApiService != null) {
-                    Call<List<Reading>> call = mApiService.getLatestReadings();
-                    call.enqueue(new Callback<List<Reading>>() {
-                        @Override
-                        public void onResponse(@NonNull Call<List<Reading>> call, @NonNull Response<List<Reading>> response) {
-                            Log.d(TAG, response.toString());
-                            if (response.body() != null && mDashboardViewModel != null) {
-                                mDashboardViewModel.getReadings().postValue(response.body());
-                                mDashboardViewModel.getNumberOfOrigins().postValue(response.body().size());
-                            }
-                        }
-
-                        @Override
-                        public void onFailure(@NonNull Call<List<Reading>> call, @NonNull Throwable t) {
-                            t.printStackTrace();
-                        }
-                    });
-                    if (mHandler != null) {
-                        mHandler.postDelayed(this, 30000);
-                    }
+        Observer<List<LatestReadingResult>> readingResultObserver = readings -> {
+            if (readings != null) {
+            Log.d(TAG, "Readings: " + readings.size());
+                origins.clear();
+                for (Reading reading : readings) {
+                    origins.add(reading.getOrigin());
                 }
-            }
-        };
+                mAdapter.notifyDataSetChanged();
+        }};
 
-        mHandler.post(fetchRunnable);
+        dashboardViewModel.getReadings().observe(this, readingResultObserver);
 
-    }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-        new Handler().post(() -> mPager.setCurrentItem(mCurrentItem));
     }
 
     @Override
@@ -125,6 +89,7 @@ public class MainActivity extends AppCompatActivity {
         if (isFinishing()) {
             mHandler.removeCallbacksAndMessages(null);
         }
+        mReadingRepository.truncateDb();
         super.onPause();
     }
 

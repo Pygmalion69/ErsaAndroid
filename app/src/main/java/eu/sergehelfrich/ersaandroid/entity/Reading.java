@@ -10,6 +10,14 @@ import android.support.annotation.NonNull;
 @Entity(primaryKeys = {"id", "origin", "timestamp"})
 public class Reading {
 
+    public Reading(@NonNull Long id, @NonNull String origin, @NonNull Long timestamp, Double temperature, Double humidity) {
+        this.id = id;
+        this.origin = origin;
+        this.timestamp = timestamp;
+        this.temperature = temperature;
+        this.humidity = humidity;
+    }
+
     private @NonNull Long id;
 
     private @NonNull String origin;

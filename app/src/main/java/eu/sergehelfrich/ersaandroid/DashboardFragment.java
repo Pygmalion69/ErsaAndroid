@@ -26,6 +26,7 @@ import eu.sergehelfrich.ersa.Scale;
 import eu.sergehelfrich.ersa.Temperature;
 import eu.sergehelfrich.ersa.solver.SolverException;
 import eu.sergehelfrich.ersaandroid.adapter.Updatable;
+import eu.sergehelfrich.ersaandroid.entity.LatestReadingResult;
 import eu.sergehelfrich.ersaandroid.entity.Reading;
 import eu.sergehelfrich.ersaandroid.viewmodel.DashboardViewModel;
 
@@ -56,7 +57,7 @@ public class DashboardFragment extends Fragment implements Updatable {
     private Double mRelativeHumidity;
     private boolean mInitialUpdate = true;
 
-    Observer<List<Reading>> mReadingsObserver;
+    Observer<List<LatestReadingResult>> mReadingsObserver;
 
     public DashboardFragment() {
         // Required empty public constructor
@@ -66,7 +67,6 @@ public class DashboardFragment extends Fragment implements Updatable {
     static DashboardFragment newInstance(String origin) {
         DashboardFragment f = new DashboardFragment();
 
-        // Supply num input as an argument.
         Bundle args = new Bundle();
         args.putString(ARG_ORIGIN, origin);
         f.setArguments(args);
@@ -91,7 +91,7 @@ public class DashboardFragment extends Fragment implements Updatable {
 
         mReadingsObserver = readings -> {
             if (readings != null) {
-                for (Reading reading : readings) {
+                for (LatestReadingResult reading : readings) {
                     if (mOrigin.equals(reading.getOrigin())) {
                         mReading = reading;
                         break;
@@ -143,7 +143,7 @@ public class DashboardFragment extends Fragment implements Updatable {
     @Override
     public void update() {
 
-        if (mViewCreated) {
+        if (mViewCreated && mReading != null) {
             mTemperature.setTemperature(mReading.getTemperature());
             mRelativeHumidity = mReading.getHumidity();
             dewPoint(mTemperature.getKelvin());
