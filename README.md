@@ -8,7 +8,7 @@ Ersa Android Client
 ![Ersa Dashboard](dashboard.png "dashboard") ![Ersa Chart](chart1.png "chart") ![Ersa Chart Zoom](chart_zoom.png "chart")
 
 Uses:
-- Android Architecture Components: ViewModel, LiveData
+- Android Architecture Components: ViewModel, LiveData, Room
 - Retrofit
 - [Ersa](https://github.com/Pygmalion69/Ersa)
 - [Gauge View](https://github.com/Pygmalion69/Gauge);
