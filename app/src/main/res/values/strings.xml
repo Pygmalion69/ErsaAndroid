@@ -13,6 +13,7 @@
     <string name="end_date">End date</string>
     <string name="end_time">End time</string>
     <string name="chart_activity_title">Ersa Chart</string>
+    <string name="select_origin">Select Origin</string>
 </resources>
 
 
