@@ -131,10 +131,11 @@ public class MainActivity extends AppCompatActivity implements SelectOriginDialo
 
     @Override
     protected void onPause() {
-        if (isFinishing()) {
+        if (isFinishing() && mHandler != null) {
             mHandler.removeCallbacksAndMessages(null);
         }
-        mReadingRepository.truncateDb();
+        if (mReadingRepository != null)
+            mReadingRepository.truncateDb();
         super.onPause();
     }
 
