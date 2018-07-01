@@ -1,6 +1,5 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:gauge="http://schemas.android.com/apk/res-auto"
-    xmlns:gravity="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/fragment_root"
     android:layout_width="match_parent"
@@ -10,14 +9,15 @@
         android:id="@+id/progress"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_gravity="center"/>
+        android:layout_gravity="center"
+        android:visibility="gone" />
 
     <ScrollView
         android:id="@+id/dashboard_scroll_view"
-        android:visibility="gone"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:fillViewport="true">
+        android:fillViewport="true"
+        android:visibility="visible">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -41,7 +41,6 @@
                 android:layout_margin="8dp"
                 android:gravity="center"
                 tools:text="2018-01-01 00:00:00" />
-
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -113,6 +112,33 @@
                     gauge:valuePerNick="1" />
 
             </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/mold_risk" />
+                <TextView
+                    android:id="@+id/tvMoldRisk"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    tools:textColor="@color/colorRisk"
+                    tools:text="RISK" />
+
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/tvDaysToMold"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:text="@string/days_to_mold"
+                />
 
         </LinearLayout>
     </ScrollView>

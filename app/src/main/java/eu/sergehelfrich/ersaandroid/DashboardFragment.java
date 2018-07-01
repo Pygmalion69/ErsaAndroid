@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.content.ContextCompat;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -19,12 +20,15 @@ import android.widget.TextView;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 
 import de.nitri.gauge.Gauge;
 import eu.sergehelfrich.ersa.Dew;
 import eu.sergehelfrich.ersa.Scale;
 import eu.sergehelfrich.ersa.Temperature;
+import eu.sergehelfrich.ersa.preservation.Risk;
 import eu.sergehelfrich.ersa.solver.SolverException;
+import eu.sergehelfrich.ersa.preservation.Metrics;
 import eu.sergehelfrich.ersaandroid.adapter.Updatable;
 import eu.sergehelfrich.ersaandroid.entity.LatestReadingResult;
 import eu.sergehelfrich.ersaandroid.entity.Reading;
@@ -48,6 +52,9 @@ public class DashboardFragment extends Fragment implements Updatable {
     private Gauge mGaugeHumidity;
     private Gauge mGaugeDewPoint;
 
+    private TextView mTvMoldRisk;
+    private TextView mTvDaysToMold;
+
     private Dew mDew;
     private Temperature mTemperature;
     private Temperature mDewPoint;
@@ -58,6 +65,7 @@ public class DashboardFragment extends Fragment implements Updatable {
     private boolean mInitialUpdate = true;
 
     Observer<List<LatestReadingResult>> mReadingsObserver;
+    private Metrics mMetrics;
 
     public DashboardFragment() {
         // Required empty public constructor
@@ -87,7 +95,9 @@ public class DashboardFragment extends Fragment implements Updatable {
         mTemperature = new Temperature(Scale.CELSIUS);
         mDewPoint = new Temperature(Scale.CELSIUS);
 
-        mViewModel = ViewModelProviders.of(getActivity()).get(DashboardViewModel.class);
+        mMetrics = new Metrics();
+
+        mViewModel = ViewModelProviders.of(Objects.requireNonNull(getActivity())).get(DashboardViewModel.class);
 
         mReadingsObserver = readings -> {
             if (readings != null) {
@@ -115,6 +125,8 @@ public class DashboardFragment extends Fragment implements Updatable {
         mGaugeTemperature = view.findViewById(R.id.gaugeTemperature);
         mGaugeHumidity = view.findViewById(R.id.gaugeHumidity);
         mGaugeDewPoint = view.findViewById(R.id.gaugeDewPoint);
+        mTvMoldRisk = view.findViewById(R.id.tvMoldRisk);
+        mTvDaysToMold = view.findViewById(R.id.tvDaysToMold);
         return view;
     }
 
@@ -159,6 +171,19 @@ public class DashboardFragment extends Fragment implements Updatable {
                 mGaugeHumidity.moveToValue(mReading.getHumidity().floatValue());
                 mGaugeDewPoint.moveToValue((float) mDewPoint.getTemperature());
             }
+            int mold = mMetrics.mold(mTemperature.getTemperature(), mReading.getHumidity());
+            Risk moldRisk = mMetrics.moldRisk(mold);
+            int riskColor = ContextCompat.getColor(mContext, moldRisk == Risk.RISK ? R.color.colorRisk : R.color.colorGood);
+            mTvMoldRisk.setTextColor(riskColor);
+            if (moldRisk == Risk.RISK) {
+                mTvMoldRisk.setText(R.string.risk);
+                mTvDaysToMold.setText(getString(R.string.days_to_mold, mold));
+                mTvDaysToMold.setVisibility(View.VISIBLE);
+            } else {
+                mTvMoldRisk.setText(R.string.good);
+                mTvDaysToMold.setVisibility(View.GONE);
+            }
+
             setVisibility();
         }
 
@@ -176,6 +201,7 @@ public class DashboardFragment extends Fragment implements Updatable {
         mProgress.setVisibility(View.GONE);
         mDashboardView.setVisibility(View.VISIBLE);
     }
+
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         inflater.inflate(R.menu.menu_dashboard, menu);
@@ -206,7 +232,8 @@ public class DashboardFragment extends Fragment implements Updatable {
     @Override
     public void onDetach() {
         mContext = null;
-        mViewModel.getReadings().removeObserver(mReadingsObserver);
+        if (mViewModel != null)
+            mViewModel.getReadings().removeObserver(mReadingsObserver);
         super.onDetach();
     }
 }

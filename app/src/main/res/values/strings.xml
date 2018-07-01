@@ -14,6 +14,11 @@
     <string name="end_time">End time</string>
     <string name="chart_activity_title">Ersa Chart</string>
     <string name="select_origin">Select Origin</string>
+    <string name="mold_risk">Mold risk: </string>
+    <string name="days_to_mold">Days to mold: %1$d</string>
+    <string name="good">Good</string>
+    <string name="ok">OK</string>
+    <string name="risk">Risk!</string>
 </resources>
 
 

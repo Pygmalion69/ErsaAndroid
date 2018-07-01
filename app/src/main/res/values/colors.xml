@@ -9,4 +9,8 @@
     <color name="colorTemperature">#F44336</color>
     <color name="colorHumidity">#2196F3</color>
     <color name="colorDewPoint">#673AB7</color>
+
+    <color name="colorRisk">#F44336</color>
+    <color name="colorGood">#008000</color>
+
 </resources>
