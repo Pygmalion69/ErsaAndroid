@@ -167,7 +167,6 @@ public class ChartActivity extends AppCompatActivity {
         leftAxis = mChart.getAxisLeft();
         leftAxis.setPosition(YAxis.YAxisLabelPosition.OUTSIDE_CHART);
         leftAxis.setTypeface(mTfLight);
-        leftAxis.setTextColor(ColorTemplate.getHoloBlue());
         leftAxis.setDrawGridLines(false);
         leftAxis.setGranularityEnabled(true);
         leftAxis.setAxisMinimum(0f);
@@ -178,7 +177,6 @@ public class ChartActivity extends AppCompatActivity {
         YAxis rightAxis = mChart.getAxisRight();
         rightAxis.setPosition(YAxis.YAxisLabelPosition.OUTSIDE_CHART);
         rightAxis.setTypeface(mTfLight);
-        rightAxis.setTextColor(ColorTemplate.getHoloBlue());
         rightAxis.setDrawGridLines(false);
         rightAxis.setGranularityEnabled(true);
         rightAxis.setAxisMinimum(0f);
